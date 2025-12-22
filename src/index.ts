@@ -57,8 +57,10 @@ export class SlackUsergroupIconsDownloader {
     console.log(`Found ${userIds.length} members. Downloading icons...`);
     await fs.mkdir(this.outputDir, { recursive: true });
 
-    for (const userId of userIds) {
-      await this.downloadUserIcon(userId);
+    const CONCURRENT_DOWNLOADS = 5;
+    for (let i = 0; i < userIds.length; i += CONCURRENT_DOWNLOADS) {
+      const chunk = userIds.slice(i, i + CONCURRENT_DOWNLOADS);
+      await Promise.all(chunk.map(userId => this.downloadUserIcon(userId)));
     }
 
     console.log(`Done! Icons saved to ${this.outputDir}/`);

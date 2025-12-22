@@ -3,8 +3,25 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { createWriteStream } from 'fs';
 import { pipeline } from 'stream/promises';
+import { Readable } from 'stream';
 
 export type ImageSize = 'original' | '1024' | '512' | '192' | '72';
+
+interface SlackUserProfile {
+  real_name?: string;
+  image_original?: string;
+  image_1024?: string;
+  image_512?: string;
+  image_192?: string;
+  image_72?: string;
+  [key: string]: string | undefined;
+}
+
+interface SlackUser {
+  id: string;
+  name: string;
+  profile?: SlackUserProfile;
+}
 
 export interface DownloaderOptions {
   token: string;
@@ -72,8 +89,8 @@ export class SlackUsergroupIconsDownloader {
       const usergroups = response.usergroups || [];
       const usergroup = usergroups.find((ug) => ug.handle === handle);
       return usergroup?.id || null;
-    } catch (error: any) {
-      if (error.data?.error === 'missing_scope') {
+    } catch (error) {
+      if (error instanceof Error && (error as any).data?.error === 'missing_scope') {
         throw new Error(
           `API error (usergroups.list): missing_scope\n\n` +
           `Required scope is missing. Please ensure your Slack App has the following scope:\n` +
@@ -101,8 +118,8 @@ export class SlackUsergroupIconsDownloader {
       }
 
       return (response.users || []) as string[];
-    } catch (error: any) {
-      if (error.data?.error === 'missing_scope') {
+    } catch (error) {
+      if (error instanceof Error && (error as any).data?.error === 'missing_scope') {
         throw new Error(`API error (usergroups.users.list): missing_scope\n\nRequired scope: usergroups:read`);
       }
       throw error;
@@ -127,7 +144,7 @@ export class SlackUsergroupIconsDownloader {
       }
 
       const imageKey = this.size === 'original' ? 'image_original' : `image_${this.size}`;
-      const imageUrl = (profile as any)[imageKey];
+      const imageUrl = profile[imageKey];
 
       if (!imageUrl || typeof imageUrl !== 'string' || !imageUrl.startsWith('http')) {
         console.log(`  Skipping ${realName} (${username}): Invalid or missing icon URL`);
@@ -139,12 +156,13 @@ export class SlackUsergroupIconsDownloader {
 
       await this.downloadImage(imageUrl, filepath);
       console.log(`  Downloaded: ${realName} (${username})`);
-    } catch (error: any) {
-      console.log(`  Error downloading icon for user ${userId}: ${error.message}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.log(`  Error downloading icon for user ${userId}: ${message}`);
     }
   }
 
-  private async fetchUserInfo(userId: string): Promise<any> {
+  private async fetchUserInfo(userId: string): Promise<SlackUser> {
     try {
       const response = await this.client.users.info({ user: userId });
 
@@ -152,9 +170,9 @@ export class SlackUsergroupIconsDownloader {
         throw new Error(`API error (users.info): ${response.error}`);
       }
 
-      return response.user;
-    } catch (error: any) {
-      if (error.data?.error === 'missing_scope') {
+      return response.user as SlackUser;
+    } catch (error) {
+      if (error instanceof Error && (error as any).data?.error === 'missing_scope') {
         throw new Error(`API error (users.info): missing_scope\n\nRequired scope: users:read`);
       }
       throw error;
@@ -173,6 +191,6 @@ export class SlackUsergroupIconsDownloader {
     }
 
     const fileStream = createWriteStream(filepath);
-    await pipeline(response.body as any, fileStream);
+    await pipeline(Readable.fromWeb(response.body as any), fileStream);
   }
 }

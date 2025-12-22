@@ -3,6 +3,12 @@
 import { Command } from 'commander';
 import { SlackUsergroupIconsDownloader, ImageSize } from './index.js';
 
+interface CliOptions {
+  debug?: boolean;
+  size: string;
+  output: string;
+}
+
 const program = new Command();
 
 program
@@ -16,7 +22,7 @@ program
     '192'
   )
   .option('-o, --output <dir>', 'Output directory', './slack_icons')
-  .action(async (usergroup: string, options: any) => {
+  .action(async (usergroup: string, options: CliOptions) => {
     const token = process.env.SLACK_API_TOKEN;
 
     if (!token) {
@@ -25,7 +31,7 @@ program
     }
 
     const validSizes: ImageSize[] = ['original', '1024', '512', '192', '72'];
-    if (!validSizes.includes(options.size)) {
+    if (!validSizes.includes(options.size as ImageSize)) {
       console.error(
         `Error: Invalid size "${options.size}". Valid sizes are: ${validSizes.join(', ')}`
       );
@@ -41,8 +47,9 @@ program
       });
 
       await downloader.downloadUsergroupIcons(usergroup);
-    } catch (error: any) {
-      console.error(`Error: ${error.message}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`Error: ${message}`);
       process.exit(1);
     }
   });

@@ -1,0 +1,6 @@
+node_modules/
+dist/
+slack_icons/
+*.log
+.env
+.DS_Store

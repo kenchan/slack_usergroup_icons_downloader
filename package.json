@@ -1,0 +1,36 @@
+{
+  "name": "slack-usergroup-icons-downloader",
+  "version": "1.0.0",
+  "description": "Download Slack usergroup member icons",
+  "main": "dist/index.js",
+  "type": "module",
+  "bin": {
+    "slack-usergroup-icons-downloader": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/cli.ts",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "slack",
+    "usergroup",
+    "icons",
+    "download",
+    "cli"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@slack/web-api": "^7.11.0",
+    "commander": "^12.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  }
+}

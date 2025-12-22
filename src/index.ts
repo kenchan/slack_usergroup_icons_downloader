@@ -153,7 +153,8 @@ export class SlackUsergroupIconsDownloader {
         return;
       }
 
-      const filename = `${username}.jpg`;
+      const ext = imageUrl.split('.').pop()?.split('?')[0] || 'jpg';
+      const filename = `${username}.${ext}`;
       const filepath = join(this.outputDir, filename);
 
       await this.downloadImage(imageUrl, filepath);

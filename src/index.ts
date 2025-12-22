@@ -35,6 +35,8 @@ export class SlackUsergroupIconsDownloader {
   private outputDir: string;
   private debug: boolean;
   private size: ImageSize;
+  private downloadedCount: number = 0;
+  private totalCount: number = 0;
 
   constructor(options: DownloaderOptions) {
     this.client = new WebClient(options.token);
@@ -57,13 +59,16 @@ export class SlackUsergroupIconsDownloader {
     console.log(`Found ${userIds.length} members. Downloading icons...`);
     await mkdir(this.outputDir, { recursive: true });
 
+    this.downloadedCount = 0;
+    this.totalCount = userIds.length;
+
     const CONCURRENT_DOWNLOADS = 5;
     for (let i = 0; i < userIds.length; i += CONCURRENT_DOWNLOADS) {
       const chunk = userIds.slice(i, i + CONCURRENT_DOWNLOADS);
       await Promise.all(chunk.map(userId => this.downloadUserIcon(userId)));
     }
 
-    console.log(`Done! Icons saved to ${this.outputDir}/`);
+    console.log(`\nDone! Downloaded ${this.downloadedCount}/${this.totalCount} icons to ${this.outputDir}/`);
   }
 
   private async resolveUsergroupId(identifier: string): Promise<string> {
@@ -158,10 +163,11 @@ export class SlackUsergroupIconsDownloader {
       const filepath = join(this.outputDir, filename);
 
       await this.downloadImage(imageUrl, filepath);
-      console.log(`  Downloaded: ${realName} (${username})`);
+      this.downloadedCount++;
+      console.log(`  [${this.downloadedCount}/${this.totalCount}] Downloaded: ${realName} (${username})`);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      console.log(`  Error downloading icon for user ${userId}: ${message}`);
+      console.log(`  [${this.downloadedCount}/${this.totalCount}] Error downloading icon for user ${userId}: ${message}`);
     }
   }
 

@@ -67,7 +67,7 @@ export class SlackUsergroupIconsDownloader {
   }
 
   private async resolveUsergroupId(identifier: string): Promise<string> {
-    if (identifier.startsWith('S')) {
+    if (/^S[A-Z0-9]{8,10}$/.test(identifier)) {
       return identifier;
     }
 

@@ -1,6 +1,6 @@
 import { WebClient } from '@slack/web-api';
-import * as fs from 'fs/promises';
-import * as path from 'path';
+import { mkdir } from 'fs/promises';
+import { join } from 'path';
 import { createWriteStream } from 'fs';
 import { pipeline } from 'stream/promises';
 import { Readable } from 'stream';
@@ -55,7 +55,7 @@ export class SlackUsergroupIconsDownloader {
     }
 
     console.log(`Found ${userIds.length} members. Downloading icons...`);
-    await fs.mkdir(this.outputDir, { recursive: true });
+    await mkdir(this.outputDir, { recursive: true });
 
     const CONCURRENT_DOWNLOADS = 5;
     for (let i = 0; i < userIds.length; i += CONCURRENT_DOWNLOADS) {
@@ -154,7 +154,7 @@ export class SlackUsergroupIconsDownloader {
       }
 
       const filename = `${username}.jpg`;
-      const filepath = path.join(this.outputDir, filename);
+      const filepath = join(this.outputDir, filename);
 
       await this.downloadImage(imageUrl, filepath);
       console.log(`  Downloaded: ${realName} (${username})`);

@@ -24,10 +24,10 @@ describe('SlackUsergroupIconsDownloader - Integration Test', () => {
     }
   });
 
-  it('実際にファイルをダウンロードして保存する', async () => {
+  it('downloads and saves files to disk', async () => {
     tempDir = await mkdtemp(join(tmpdir(), 'slack-icons-test-'));
 
-    // Slack API usergroups.list のモック
+    // Mock for Slack API usergroups.list
     nock(slackApi)
       .post('/api/usergroups.list')
       .reply(200, {
@@ -37,7 +37,7 @@ describe('SlackUsergroupIconsDownloader - Integration Test', () => {
         ],
       });
 
-    // Slack API usergroups.users.list のモック
+    // Mock for Slack API usergroups.users.list
     nock(slackApi)
       .post('/api/usergroups.users.list')
       .reply(200, {
@@ -45,7 +45,7 @@ describe('SlackUsergroupIconsDownloader - Integration Test', () => {
         users: ['U01', 'U02'],
       });
 
-    // Slack API users.info のモック（2ユーザー分）
+    // Mock for Slack API users.info (2 users)
     nock(slackApi)
       .post('/api/users.info', { user: 'U01' })
       .reply(200, {
@@ -74,7 +74,7 @@ describe('SlackUsergroupIconsDownloader - Integration Test', () => {
         },
       });
 
-    // 画像URLのモック（実際の画像データ）
+    // Mock for image URLs (fake image data)
     const aliceImageData = Buffer.from('fake-alice-image-data');
     const bobImageData = Buffer.from('fake-bob-image-data');
 
@@ -94,28 +94,28 @@ describe('SlackUsergroupIconsDownloader - Integration Test', () => {
 
     await downloader.downloadUsergroupIcons('engineers');
 
-    // ファイルが実際に作成されたことを検証
+    // Verify that files were actually created
     const aliceFile = join(tempDir, 'alice.jpg');
     const bobFile = join(tempDir, 'bob.png');
 
     await access(aliceFile);
     await access(bobFile);
 
-    // ファイルの内容を検証
+    // Verify file contents
     const aliceContent = await readFile(aliceFile);
     const bobContent = await readFile(bobFile);
 
     expect(aliceContent.toString()).toBe(aliceImageData.toString());
     expect(bobContent.toString()).toBe(bobImageData.toString());
 
-    // すべてのHTTPモックが使用されたことを確認
+    // Verify that all HTTP mocks were used
     expect(nock.isDone()).toBe(true);
   });
 
-  it('Usergroup IDを直接指定した場合もファイルをダウンロードする', async () => {
+  it('downloads files when Usergroup ID is directly specified', async () => {
     tempDir = await mkdtemp(join(tmpdir(), 'slack-icons-test-'));
 
-    // usergroups.listは呼ばれない（IDを直接指定しているため）
+    // usergroups.list is not called (ID is directly specified)
     nock(slackApi)
       .post('/api/usergroups.users.list')
       .reply(200, {
@@ -156,7 +156,7 @@ describe('SlackUsergroupIconsDownloader - Integration Test', () => {
     expect(content.toString()).toBe(imageData.toString());
   });
 
-  it('画像URLが無効な場合はファイルを作成しない', async () => {
+  it('does not create file when image URL is invalid', async () => {
     tempDir = await mkdtemp(join(tmpdir(), 'slack-icons-test-'));
 
     nock(slackApi)
@@ -175,7 +175,7 @@ describe('SlackUsergroupIconsDownloader - Integration Test', () => {
           name: 'noimage',
           profile: {
             real_name: 'No Image User',
-            // image_192がない
+            // no image_192
           },
         },
       });
@@ -187,7 +187,7 @@ describe('SlackUsergroupIconsDownloader - Integration Test', () => {
 
     await downloader.downloadUsergroupIcons('S12345678');
 
-    // ファイルが作成されていないことを確認
+    // Verify that no files were created
     const files = await readFile(tempDir).catch(() => []);
     expect(files).toEqual([]);
   });

@@ -64,7 +64,7 @@ describe('SlackUsergroupIconsDownloader', () => {
   });
 
   describe('resolveUsergroupId', () => {
-    it('有効なUsergroup IDを渡すとAPI呼び出しをせずにそのまま返す', async () => {
+    it('returns valid Usergroup ID without API call', async () => {
       mockWebClient.usergroups.users.list.mockResolvedValue({
         ok: true,
         users: [],
@@ -78,7 +78,7 @@ describe('SlackUsergroupIconsDownloader', () => {
       });
     });
 
-    it('usergroupハンドル名を渡すとAPI呼び出してIDを取得する', async () => {
+    it('calls API to get ID when usergroup handle is provided', async () => {
       mockWebClient.usergroups.list.mockResolvedValue({
         ok: true,
         usergroups: [
@@ -98,7 +98,7 @@ describe('SlackUsergroupIconsDownloader', () => {
       });
     });
 
-    it('存在しないusergroupハンドル名を渡すとエラーをthrowする', async () => {
+    it('throws error when non-existent usergroup handle is provided', async () => {
       mockWebClient.usergroups.list.mockResolvedValue({
         ok: true,
         usergroups: [],
@@ -110,8 +110,8 @@ describe('SlackUsergroupIconsDownloader', () => {
     });
   });
 
-  describe('エラーハンドリング', () => {
-    it('usergroups.listでmissing_scopeエラーが発生すると詳細なメッセージを表示', async () => {
+  describe('Error handling', () => {
+    it('displays detailed message when missing_scope error occurs in usergroups.list', async () => {
       const error = new Error('missing_scope');
       (error as any).data = { error: 'missing_scope' };
       mockWebClient.usergroups.list.mockRejectedValue(error);
@@ -121,7 +121,7 @@ describe('SlackUsergroupIconsDownloader', () => {
       ).rejects.toThrow(/usergroups:read/);
     });
 
-    it('usergroups.users.listでAPIエラーが発生するとエラーをthrowする', async () => {
+    it('throws error when API error occurs in usergroups.users.list', async () => {
       mockWebClient.usergroups.users.list.mockResolvedValue({
         ok: false,
         error: 'invalid_auth',
@@ -134,7 +134,7 @@ describe('SlackUsergroupIconsDownloader', () => {
   });
 
   describe('downloadUsergroupIcons', () => {
-    it('メンバーが0人の場合はダウンロード処理を行わない', async () => {
+    it('does not download when there are no members', async () => {
       mockWebClient.usergroups.users.list.mockResolvedValue({
         ok: true,
         users: [],

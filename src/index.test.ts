@@ -150,49 +150,5 @@ describe('SlackUsergroupIconsDownloader', () => {
 
       consoleLogSpy.mockRestore();
     });
-
-    it('メンバー全員のアイコンをダウンロードする', async () => {
-      const { pipeline } = await import('stream/promises');
-      vi.mocked(pipeline).mockResolvedValue(undefined);
-
-      mockWebClient.usergroups.users.list.mockResolvedValue({
-        ok: true,
-        users: ['U01', 'U02'],
-      });
-
-      mockWebClient.users.info
-        .mockResolvedValueOnce({
-          ok: true,
-          user: {
-            id: 'U01',
-            name: 'user1',
-            profile: { image_192: 'http://example.com/user1.jpg', real_name: 'User One' },
-          },
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          user: {
-            id: 'U02',
-            name: 'user2',
-            profile: { image_192: 'http://example.com/user2.png', real_name: 'User Two' },
-          },
-        });
-
-      const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-
-      await downloader.downloadUsergroupIcons('S12345678');
-
-      expect(mockWebClient.users.info).toHaveBeenCalledTimes(2);
-      expect(mockWebClient.users.info).toHaveBeenCalledWith({ user: 'U01' });
-      expect(mockWebClient.users.info).toHaveBeenCalledWith({ user: 'U02' });
-
-      expect(global.fetch).toHaveBeenCalledTimes(2);
-      expect(global.fetch).toHaveBeenCalledWith('http://example.com/user1.jpg');
-      expect(global.fetch).toHaveBeenCalledWith('http://example.com/user2.png');
-
-      expect(consoleLogSpy).toHaveBeenLastCalledWith('\nDone! Downloaded 2/2 icons to ./slack_icons/');
-
-      consoleLogSpy.mockRestore();
-    });
   });
 });

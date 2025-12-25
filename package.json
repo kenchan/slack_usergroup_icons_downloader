@@ -36,9 +36,11 @@
     "commander": "^12.1.0"
   },
   "devDependencies": {
+    "@types/nock": "^10.0.3",
     "@types/node": "^22.10.2",
     "@vitest/coverage-v8": "^4.0.16",
     "@vitest/ui": "^4.0.16",
+    "nock": "^14.0.10",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
     "vitest": "^4.0.16"
